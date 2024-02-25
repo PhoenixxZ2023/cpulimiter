@@ -16,7 +16,7 @@ ativar_cpulimit() {
     return
   fi
 
-  cpulimit --pid $pid --limit $limite_cpu >/dev/null 2>&1 &
+  sshplus "cpulimit --pid $pid --limit $limite_cpu" >/dev/null 2>&1 &
   echo "cpulimit ativado para o processo com PID $pid com limite de $limite_cpu%."
 }
 
@@ -29,7 +29,7 @@ desativar_cpulimit() {
     return
   fi
 
-  kill -15 $pid >/dev/null 2>&1
+  sshplus "kill -15 $pid" >/dev/null 2>&1
   echo "cpulimit desativado para o processo com PID $pid."
 }
 
@@ -42,7 +42,7 @@ parar_processos_cpu_alta() {
     return
   fi
 
-  processos_alta_cpu=$(ps aux --sort=-%cpu | awk -v lim=$limite_cpu '$3 >= lim {print $2}')
+  processos_alta_cpu=$(sshplus "ps aux --sort=-%cpu" | awk -v lim=$limite_cpu '$3 >= lim {print $2}')
   if [ -z "$processos_alta_cpu" ]; then
     echo "Não foram encontrados processos com uso de CPU acima de $limite_cpu%."
     return
@@ -51,18 +51,13 @@ parar_processos_cpu_alta() {
   echo "Processos com uso de CPU acima de $limite_cpu%:"
   echo "$processos_alta_cpu"
 
-  processos_parar=$(echo "$processos_alta_cpu" | grep -E "processo1|processo2|processo3") # Adicione aqui os nomes dos processos que deseja parar
-
-  if [ -z "$processos_parar" ]; then
-    echo "Não há processos específicos para parar."
-    return
-  fi
-
   echo "Deseja encerrar esses processos? (s/n)"
   read resposta
   if [ "$resposta" = "s" ]; then
     echo "Encerrando processos..."
-    kill -15 $processos_parar >/dev/null 2>&1
+    for pid in $processos_alta_cpu; do
+      sshplus "kill -15 $pid" >/dev/null 2>&1
+    done
     echo "Processos encerrados."
   else
     echo "Operação cancelada."
