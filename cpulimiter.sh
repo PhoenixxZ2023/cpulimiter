@@ -69,7 +69,8 @@ conceder_acesso() {
 
 # Loop principal do menu
 while true; do
-  echo "Menu:"
+  echo "Menu CPU Limiter:"
+  echo
   echo "1. Ativar cpulimit"
   echo "2. Desativar cpulimit"
   echo "3. Identificar e parar processos com alto uso de CPU"
