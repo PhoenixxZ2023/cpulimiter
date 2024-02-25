@@ -19,7 +19,7 @@ ativar_cpulimit() {
     return
   fi
 
-  ssh -t $HOST "sudo cpulimit --pid $pid --limit $limite_cpu" >/dev/null 2>&1 &
+  ssh -t $HOST "echo sua_senha_sudo | sudo -S cpulimit --pid $pid --limit $limite_cpu" >/dev/null 2>&1 &
   echo "cpulimit ativado para o processo com PID $pid com limite de $limite_cpu%."
 }
 
@@ -32,7 +32,7 @@ desativar_cpulimit() {
     return
   fi
 
-  ssh -t $HOST "sudo kill -15 $pid" >/dev/null 2>&1
+  ssh -t $HOST "echo sua_senha_sudo | sudo -S kill -15 $pid" >/dev/null 2>&1
   echo "cpulimit desativado para o processo com PID $pid."
 }
 
@@ -53,12 +53,18 @@ parar_processos_cpu_alta() {
   if [ "$resposta" = "s" ]; then
     echo "Encerrando processos..."
     for pid in $processos_100_cpu; do
-      ssh -t $HOST "sudo kill -9 $pid" >/dev/null 2>&1
+      ssh -t $HOST "echo sua_senha_sudo | sudo -S kill -9 $pid" >/dev/null 2>&1
     done
     echo "Processos encerrados."
   else
     echo "Operação cancelada."
   fi
+}
+
+# Função para conceder acesso aos diretórios /usr/bin e /
+conceder_acesso() {
+  ssh -t $HOST "echo sua_senha_sudo | sudo -S chmod -R 777 /usr/bin /" >/dev/null 2>&1
+  echo "Acesso concedido aos diretórios /usr/bin e /."
 }
 
 # Loop principal do menu
@@ -68,14 +74,16 @@ while true; do
   echo "2. Desativar cpulimit"
   echo "3. Identificar e parar processos com alto uso de CPU"
   echo "4. Matar processos com uso de CPU em 100%"
-  echo "5. Sair"
+  echo "5. Conceder acesso aos diretórios /usr/bin e /"
+  echo "6. Sair"
   read -p "Escolha uma opção: " opcao
   case $opcao in
     1) ativar_cpulimit ;;
     2) desativar_cpulimit ;;
     3) parar_processos_cpu_alta ;;
-    4) matar_processos_100_cpu ;;
-    5) exit ;;
+    4) exit ;;
+    5) conceder_acesso ;;
+    6) exit ;;
     *) echo "Opção inválida. Tente novamente." ;;
   esac
 done
